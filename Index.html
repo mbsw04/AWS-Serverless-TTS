@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to Speech</title>
+    <style>
+        body {
+            background-color: #181818;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        h1 {
+            color: #00FF7F;
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 80%;
+            height: 150px;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #00FF7F;
+            border-radius: 8px;
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+            font-size: 16px;
+        }
+
+        select {
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+            border: 2px solid #00FF7F;
+            padding: 10px;
+            margin: 10px 5px;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #00FF7F;
+            color: #181818;
+            font-size: 18px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #00e64d;
+        }
+
+        a {
+            display: inline-block;
+            background-color: #00FF7F;
+            color: #181818;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+
+        a:hover {
+            background-color: #00e64d;
+        }
+
+        label {
+            color: #00FF7F;
+            margin-right: 10px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>TTS Webapp</h1>
+        <textarea id="text" placeholder="Enter text here..."></textarea>
+        
+        <div>
+            <label for="language">Language:</label>
+            <select id="language">
+                <option value="en-US">English (US)</option>
+                <option value="es-ES">Spanish (Spain)</option>
+                <option value="fr-FR">French (France)</option>
+            </select>
+        </div>
+        
+        <div>
+            <label for="voice">Voice:</label>
+            <select id="voice">
+                <option value="Joanna">Joanna</option>
+                <option value="Matthew">Matthew</option>
+                <option value="Lucia">Lucia</option>
+                <option value="Celine">Celine</option>
+            </select>
+        </div>
+        
+        <button onclick="synthesizeSpeech()">Convert to Speech</button>
+        <br><br>
+        <a id="download" style="display:none;" href="#">Download MP3</a>
+    </div>
+
+    <script>
+        async function synthesizeSpeech() {
+            const text = document.getElementById("text").value;
+            const language = document.getElementById("language").value;
+            const voice = document.getElementById("voice").value;
+
+            if (!text.trim()) {
+                alert("Please enter some text to convert.");
+                return;
+            }
+
+            try {
+                const response = await fetch("https://aqz6u267l3.execute-api.us-east-1.amazonaws.com/prod", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text, language, voice })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API request failed with status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log("API response:", data); // Log the full response for debugging
+
+                // Parse the body content and access the audio_url
+                const bodyData = JSON.parse(data.body);
+                if (bodyData.audio_url) {
+                    const downloadLink = document.getElementById("download");
+                    const fileUrl = bodyData.audio_url + "?download=true";
+                    downloadLink.href = fileUrl;
+                    downloadLink.download = "speech.mp3"; 
+                    downloadLink.style.display = "inline"; 
+                } else {
+                    alert("Error: No audio URL returned.");
+                }
+            } catch (error) {
+                console.error("Error during API call:", error); 
+                alert("Error: " + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
