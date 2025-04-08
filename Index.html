@@ -123,10 +123,19 @@
 
     <button onclick="synthesizeSpeech()">Convert to Speech</button>
 
+<<<<<<< HEAD
     <div id="audio-wrapper">
       <audio id="audio-player" controls></audio>
     </div>
   </div>
+=======
+            try {
+                const response = await fetch("ENTER YOUR OWN API ENDPOINT", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text, language, voice })
+                });
+>>>>>>> cc18fd87b57ad73d8d31e770790d0488557bdb9e
 
   <script>
     const voiceData = {
