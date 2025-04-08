@@ -1,162 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text to Speech</title>
-    <style>
-        body {
-            background-color: #181818;
-            color: #e0e0e0;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            text-align: center;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Text to Speech</title>
+  <style>
+    body {
+      background-color: #181818;
+      color: #e0e0e0;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
 
-        h1 {
-            color: #00FF7F;
-            margin-bottom: 20px;
-        }
+    h1 {
+      color: #00FF7F;
+      margin-bottom: 20px;
+    }
 
-        textarea {
-            width: 80%;
-            height: 150px;
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 2px solid #00FF7F;
-            border-radius: 8px;
-            background-color: #2a2a2a;
-            color: #e0e0e0;
-            font-size: 16px;
-        }
+    textarea {
+      width: 80%;
+      height: 150px;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 2px solid #00FF7F;
+      border-radius: 8px;
+      background-color: #2a2a2a;
+      color: #e0e0e0;
+      font-size: 16px;
+    }
 
-        select {
-            background-color: #2a2a2a;
-            color: #e0e0e0;
-            border: 2px solid #00FF7F;
-            padding: 10px;
-            margin: 10px 5px;
-            border-radius: 8px;
-            font-size: 16px;
-        }
+    select {
+      background-color: #2a2a2a;
+      color: #e0e0e0;
+      border: 2px solid #00FF7F;
+      padding: 10px;
+      margin: 10px 5px;
+      border-radius: 8px;
+      font-size: 16px;
+    }
 
-        button {
-            background-color: #00FF7F;
-            color: #181818;
-            font-size: 18px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
+    select option:disabled {
+      color: #888;
+    }
 
-        button:hover {
-            background-color: #00e64d;
-        }
+    button {
+      background-color: #00FF7F;
+      color: #181818;
+      font-size: 18px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
 
-        a {
-            display: inline-block;
-            background-color: #00FF7F;
-            color: #181818;
-            padding: 10px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            margin-top: 20px;
-        }
+    button:hover {
+      background-color: #00e64d;
+    }
 
-        a:hover {
-            background-color: #00e64d;
-        }
+    label {
+      color: #00FF7F;
+      margin-right: 10px;
+    }
 
-        label {
-            color: #00FF7F;
-            margin-right: 10px;
-        }
+    .container {
+      width: 90%;
+      max-width: 600px;
+      text-align: center;
+    }
 
-        .container {
-            width: 90%;
-            max-width: 600px;
-            text-align: center;
-        }
-    </style>
+    #audio-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-top: 30px;
+      width: 100%;
+    }
+
+    #audio-player {
+      display: none;
+      background-color: #2a2a2a;
+      border: 2px solid #00FF7F;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    audio::-webkit-media-controls-panel {
+      background-color: #2a2a2a;
+      color: #00FF7F;
+    }
+
+    audio::-webkit-media-controls-play-button,
+    audio::-webkit-media-controls-timeline,
+    audio::-webkit-media-controls-volume-slider {
+        filter: invert(100);
+    }
+
+    
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>TTS Webapp</h1>
-        <textarea id="text" placeholder="Enter text here..."></textarea>
-        
-        <div>
-            <label for="language">Language:</label>
-            <select id="language">
-                <option value="en-US">English (US)</option>
-                <option value="es-ES">Spanish (Spain)</option>
-                <option value="fr-FR">French (France)</option>
-            </select>
-        </div>
-        
-        <div>
-            <label for="voice">Voice:</label>
-            <select id="voice">
-                <option value="Joanna">Joanna</option>
-                <option value="Matthew">Matthew</option>
-                <option value="Lucia">Lucia</option>
-                <option value="Celine">Celine</option>
-            </select>
-        </div>
-        
-        <button onclick="synthesizeSpeech()">Convert to Speech</button>
-        <br><br>
-        <a id="download" style="display:none;" href="#">Download MP3</a>
+  <div class="container">
+    <h1>TTS Webapp</h1>
+    <textarea id="text" placeholder="Enter text here..."></textarea>
+
+    <div>
+      <label for="language">Language:</label>
+      <select id="language" onchange="filterVoices()"></select>
     </div>
 
-    <script>
-        async function synthesizeSpeech() {
-            const text = document.getElementById("text").value;
-            const language = document.getElementById("language").value;
-            const voice = document.getElementById("voice").value;
+    <div>
+      <label for="voice">Voice:</label>
+      <select id="voice" onchange="filterLanguages()"></select>
+    </div>
 
-            if (!text.trim()) {
-                alert("Please enter some text to convert.");
-                return;
-            }
+    <button onclick="synthesizeSpeech()">Convert to Speech</button>
 
-            try {
-                const response = await fetch("https://aqz6u267l3.execute-api.us-east-1.amazonaws.com/prod", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ text, language, voice })
-                });
+    <div id="audio-wrapper">
+      <audio id="audio-player" controls></audio>
+    </div>
+  </div>
 
-                if (!response.ok) {
-                    throw new Error(`API request failed with status: ${response.status}`);
-                }
+  <script>
+    const voiceData = {
+      "Joanna": "en-US", "Matthew": "en-US", "Ivy": "en-US", "Justin": "en-US",
+      "Lucia": "es-ES", "Enrique": "es-ES", "Miguel": "es-MX", "Penelope": "es-US",
+      "Celine": "fr-FR", "Lea": "fr-FR", "Mathieu": "fr-FR", "Chantal": "fr-CA",
+      "Hans": "de-DE", "Marlene": "de-DE", "Vicki": "de-DE",
+      "Takumi": "ja-JP", "Mizuki": "ja-JP",
+      "Seoyeon": "ko-KR",
+      "Zhiyu": "cmn-CN", "Hiujin": "yue-CN",
+      "Raveena": "en-IN", "Amy": "en-GB", "Emma": "en-GB", "Brian": "en-GB"
+    };
 
-                const data = await response.json();
-                console.log("API response:", data); // Log the full response for debugging
+    function populateDropdowns() {
+      const languageSet = new Set(Object.values(voiceData));
+      const languageSelect = document.getElementById("language");
+      const voiceSelect = document.getElementById("voice");
 
-                // Parse the body content and access the audio_url
-                const bodyData = JSON.parse(data.body);
-                if (bodyData.audio_url) {
-                    const downloadLink = document.getElementById("download");
-                    const fileUrl = bodyData.audio_url + "?download=true";
-                    downloadLink.href = fileUrl;
-                    downloadLink.download = "speech.mp3"; 
-                    downloadLink.style.display = "inline"; 
-                } else {
-                    alert("Error: No audio URL returned.");
-                }
-            } catch (error) {
-                console.error("Error during API call:", error); 
-                alert("Error: " + error.message);
-            }
+      languageSelect.innerHTML = "";
+      languageSet.forEach(lang => {
+        const option = document.createElement("option");
+        option.value = lang;
+        option.text = lang;
+        languageSelect.appendChild(option);
+      });
+
+      voiceSelect.innerHTML = "";
+      for (let voice in voiceData) {
+        const option = document.createElement("option");
+        option.value = voice;
+        option.text = voice;
+        voiceSelect.appendChild(option);
+      }
+
+      filterVoices(); // Initial filtering
+    }
+
+    function filterVoices() {
+      const selectedLang = document.getElementById("language").value;
+      const voiceSelect = document.getElementById("voice");
+      for (let i = 0; i < voiceSelect.options.length; i++) {
+        const voice = voiceSelect.options[i].value;
+        voiceSelect.options[i].disabled = voiceData[voice] !== selectedLang;
+      }
+      // Select the first enabled voice
+      for (let i = 0; i < voiceSelect.options.length; i++) {
+        if (!voiceSelect.options[i].disabled) {
+          voiceSelect.selectedIndex = i;
+          break;
         }
-    </script>
+      }
+    }
+
+    function filterLanguages() {
+      const selectedVoice = document.getElementById("voice").value;
+      const targetLang = voiceData[selectedVoice];
+      const languageSelect = document.getElementById("language");
+      for (let i = 0; i < languageSelect.options.length; i++) {
+        const opt = languageSelect.options[i];
+        opt.disabled = opt.value !== targetLang;
+        if (opt.value === targetLang) languageSelect.selectedIndex = i;
+      }
+    }
+
+    async function synthesizeSpeech() {
+      const text = document.getElementById("text").value;
+      const language = document.getElementById("language").value;
+      const voice = document.getElementById("voice").value;
+      const audioPlayer = document.getElementById("audio-player");
+
+      if (!text.trim()) {
+        alert("Please enter some text to convert.");
+        return;
+      }
+
+      try {
+        const response = await fetch("https://aqz6u267l3.execute-api.us-east-1.amazonaws.com/prod", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, language, voice })
+        });
+
+        if (!response.ok) throw new Error(`API request failed with status: ${response.status}`);
+        const data = await response.json();
+        const bodyData = JSON.parse(data.body);
+
+        if (bodyData.audio_url) {
+          audioPlayer.src = bodyData.audio_url;
+          audioPlayer.style.display = "block";
+        } else {
+          alert("Error: No audio URL returned.");
+        }
+      } catch (error) {
+        console.error("Error during API call:", error);
+        alert("Error: " + error.message);
+      }
+    }
+
+    window.onload = populateDropdowns;
+  </script>
 </body>
 </html>
